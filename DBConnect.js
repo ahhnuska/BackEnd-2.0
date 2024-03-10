@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const user = require("./userSchema");
 app.use(express.json());
 mongoose
-  .connect("mongodb://localhost/dbConnection")
+  .connect("mongodb://localhost/db")
   .then(() => {
     console.log("Connected to MongoDB");
   })
@@ -17,17 +17,60 @@ mongoose
 //user model name
 //app middleware
 
-const entry=new user({
-        name:"Anuska",
-        number:123
+//Post method
+app.post("/create", (req, res) => {
+  const entry = new user(req.body)
+  entry.save()
+    .then((entry) => {
+      res.json(entry)
+    })
+    .catch((error) => {
+      res.json(error.message)
+    })
 })
-entry.save()
-.then((entry)=>{
-  console.log("User saved",entry)
+//Get method =>Read(All)
+app.get("/read",(req,res)=>{
+  user.find()
+  .then((data)=>{
+    res.json(data)
+  })
+  .catch((error)=>{
+    res.json(error.message)
+  })
 })
-.catch(()=>{
-  console.log("Failed to save",error)
+
+//Update particular thing
+app.put("/update/:name",(req,res)=>{
+  const {name}=req.params
+  
+  user.findOneAndUpdate({ name: name }, req.body, { new: true })
+    .then((result)=>{
+      if (!result) {
+        return res.json({ error: 'User not found' })
+      }
+      res.json(result);
+    })
+    .catch((error)=>{
+      res.json({ error: error.message })
+    })
 })
+
+app.delete("/delete/:name",(req,res)=>{
+  const {name}=req.params
+  user.findOneAndDelete({name:name})
+  .then((result) => {
+    if (!result) {
+        return res.json({ error: 'User not found' });
+    }
+    res.json("Deleted").end();
+})
+  .catch((error)=>{
+    res.json({error:error.messsage})
+  })
+})
+
+
+
 
 
 
