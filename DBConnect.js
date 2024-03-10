@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const user = require("./userSchema");
 app.use(express.json());
 mongoose
-  .connect("mongodb://localhost/db")
+  .connect("mongodb://localhost/database")
   .then(() => {
     console.log("Connected to MongoDB");
   })
@@ -18,64 +18,65 @@ mongoose
 //app middleware
 
 //Post method
-app.post("/create", (req, res) => {
+app.post("/create", async(req, res) => {
+  try{
   const entry = new user(req.body)
-  entry.save()
-    .then((entry) => {
-      res.json(entry)
-    })
-    .catch((error) => {
-      res.json(error.message)
-    })
+  const result=await entry.save()
+  res.json(result)
+  }
+  catch(error){
+  
+      res.json({error:error.message})
+    }
 })
 //Get method =>Read(All)
-app.get("/read",(req,res)=>{
-  user.find()
-  .then((data)=>{
-    res.json(data)
-  })
-  .catch((error)=>{
+app.get("/read",async(req,res)=>{
+  try{
+  const data= await user.find()
+  res.json(data)
+  }
+  catch(error){
     res.json(error.message)
-  })
+  }
 })
 
 //Update particular thing
-app.put("/update/:name",(req,res)=>{
-  const {name}=req.params
-  
-  user.findOneAndUpdate({ name: name }, req.body, { new: true })
-    .then((result)=>{
+app.put("/update/:id",async(req,res)=>{
+  const {id}=req.params
+  try{
+  const result = await user.findOneAndUpdate({ _id: id }, req.body, { new: true })
       if (!result) {
         return res.json({ error: 'User not found' })
       }
       res.json(result);
-    })
-    .catch((error)=>{
+    }
+    catch(error){
       res.json({ error: error.message })
-    })
+    }
 })
 
-app.delete("/delete/:name",(req,res)=>{
-  const {name}=req.params
-  user.findOneAndDelete({name:name})
-  .then((result) => {
+app.delete("/delete/:id",async(req,res)=>{
+  const {id}=req.params
+  try{
+  const result= await user.findOneAndDelete({_id:id})
     if (!result) {
         return res.json({ error: 'User not found' });
     }
     res.json("Deleted").end();
+
+  }
+  catch(error){
+    res.json({error:error.message})
+  }
 })
-  .catch((error)=>{
-    res.json({error:error.messsage})
-  })
-})
 
 
 
 
 
 
-app.use(express.json());
+app.use(express.json())
 
 app.listen(3000, () => {
-  console.log("Listening to the port");
-});
+  console.log("Listening to the port")
+})
